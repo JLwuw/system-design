@@ -27,7 +27,18 @@ class ServicioConInvalidacionYTTL:
         # - Una entrada solo cuenta como acierto si tiene menos de
         #   self.ttl segundos. Si ya vencio, es un fallo: consulta el
         #   repositorio y reemplaza la entrada.
-        raise NotImplementedError
+
+        clave = (cancha, fecha)
+
+        if clave not in self.cache:
+            self.fallos += 1
+            disponibilidad = self.repositorio.consultar_disponibilidad(cancha, fecha)
+            self.cache[clave] = (disponibilidad, self.reloj.ahora())
+            return disponibilidad
+
+        
+
+
 
     def reservar(self, cancha, fecha, hora):
         # TODO: verifica la disponibilidad directamente en el repositorio
