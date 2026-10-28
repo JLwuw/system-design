@@ -33,12 +33,22 @@ class ServicioConInvalidacionYTTL:
         if clave not in self.cache:
             self.fallos += 1
             disponibilidad = self.repositorio.consultar_disponibilidad(cancha, fecha)
-            self.cache[clave] = (disponibilidad, self.reloj.ahora())
+            hora = self.reloj.ahora()
+            self.cache[clave] = (disponibilidad, hora)
             return disponibilidad
 
+        disponibilidad, hora = self.cache[clave]
+
+        if self.reloj.ahora() - hora >= self.ttl:
+            self.fallos += 1
+            disponibilidad = self.repositorio.consultar_disponibilidad(cancha, fecha)
+            hora = self.reloj.ahora()
+            self.cache[clave] = (disponibilidad, hora)
+            return disponibilidad
+
+        self.aciertos += 1
+        return disponibilidad
         
-
-
 
     def reservar(self, cancha, fecha, hora):
         # TODO: verifica la disponibilidad directamente en el repositorio
@@ -46,4 +56,15 @@ class ServicioConInvalidacionYTTL:
         # hora no esta libre, devuelve False. Si esta libre, registra la
         # reserva en el repositorio, invalida la entrada (cancha, fecha)
         # del cache, aunque no exista, y devuelve True.
-        raise NotImplementedError
+        disponibilidad = self.repositorio.consultar_disponibilidad(cancha, fecha)
+
+        if hora not in disponibilidad:
+            return False
+
+        self.repositorio.registrar_reserva(cancha, fecha, hora)
+
+        clave = (cancha, fecha)
+        self.cache.pop(clave, None)
+        
+        return True
+
