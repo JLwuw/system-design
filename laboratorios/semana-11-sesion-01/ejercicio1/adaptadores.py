@@ -56,6 +56,21 @@ class RepositorioEnMemoria(RepositorioDeReservas):
     # el diccionario self.reservas (id -> Reserva). Los ids son "r-1",
     # "r-2", ..., igual que en SQLite.
 
+    def ocupada(self, cancha, fecha, hora):
+        return any(reserva.cancha == cancha and reserva.fecha == fecha and reserva.hora == hora
+                   for reserva in self.reservas.values())
+
+    def contar_del_estudiante(self, estudiante, fecha):
+        return sum(reserva.estudiante == estudiante and reserva.fecha == fecha
+                   for reserva in self.reservas.values())
+
+    def guardar(self, estudiante, cancha, fecha, hora):
+        id_reserva = "r-" + str(self.siguiente_numero)
+        self.siguiente_numero += 1
+        reserva = Reserva(id_reserva, estudiante, cancha, fecha, hora)
+        self.reservas[id_reserva] = reserva
+        return reserva
+
 
 CODIGOS_POR_MOTIVO = {
     "cancha desconocida": 404,

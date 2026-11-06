@@ -41,7 +41,11 @@ class ServicioConCola:
         # mensaje con el cuerpo {"estudiante": ..., "cancha": ...,
         # "hora": ...} y devuelve "confirmada". Si no esta libre, devuelve
         # "ocupada" sin publicar nada.
-        raise NotImplementedError
+        if not self.repositorio.esta_libre(cancha, hora):
+            return "ocupada"
+        self.repositorio.registrar(estudiante, cancha, hora)
+        self.cola.publicar({"estudiante": estudiante, "cancha": cancha, "hora": hora})
+        return "confirmada"
 
 
 class TrabajadorDeCorreo:
@@ -54,7 +58,14 @@ class TrabajadorDeCorreo:
         # correo al estudiante del cuerpo, con asunto_de_confirmacion(cuerpo).
         # Si el envio salio bien, confirma el mensaje con su "id". Si fallo,
         # deja de procesar sin confirmarlo.
-        raise NotImplementedError
+        while True:
+            mensaje = self.cola.recibir()
+            if mensaje is None:
+                return
+            cuerpo = mensaje["cuerpo"]
+            if not self.correo.enviar(cuerpo["estudiante"], asunto_de_confirmacion(cuerpo)):
+                return
+            self.cola.confirmar(mensaje["id"])
 
 
 if __name__ == "__main__":

@@ -56,7 +56,7 @@ class ApiReservaU:
 
         for campo in CAMPOS_DE_RESERVA:
             if campo not in cuerpo:
-                return Respuesta(404, {'error': 'faltan campos'})
+                return Respuesta(400, {'error': 'faltan campos'})
 
         if cuerpo['cancha'] not in CANCHAS:
             return Respuesta(404, {"error": "cancha desconocida"})
