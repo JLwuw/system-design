@@ -45,7 +45,6 @@ def simular_consultas(intervalo_segundos):
 
 class ObservadorDeCalendario:
     """Lo que el calendario sabe de quien se suscribe: que tiene este metodo."""
-
     def al_liberarse(self, cancha, franja):
         raise NotImplementedError
 
@@ -55,10 +54,23 @@ class CalendarioObservable(CalendarioDeCancha):
     # lista vacia de observadores. Escribe suscribir(observador), que lo
     # agrega a esa lista.
 
+    def __init__(self, cancha, fecha):
+        super().__init__(cancha, fecha)
+        self._observadores = []
+
+    def suscribir(self, observador):
+        self._observadores.append(observador)
+
     # TODO 2: sobrescribe cancelar. Guarda la franja de la reserva, cancela
     # como lo hace CalendarioDeCancha, y despues llama al_liberarse(cancha,
     # franja) de cada observador, en el orden en que se suscribieron.
-    pass
+    
+    def cancelar(self, id_reserva):
+        franja = self.franja_de(id_reserva)
+        super().cancelar(id_reserva)
+
+        for observador in self._observadores:
+            observador.al_liberarse(self.cancha, franja)
 
 
 class ListaDeEspera(ObservadorDeCalendario):
@@ -73,7 +85,25 @@ class ListaDeEspera(ObservadorDeCalendario):
         # lista y le envia, con el notificador:
         #     "Se libero cancha-1 el 2026-11-10 de 18 a 19"
         # Si nadie la espera, no hace nada.
-        raise NotImplementedError
+
+        if franja not in self.esperando:
+            self.esperando[franja] = []
+
+        self.esperando[franja].append(estudiante)
+        
+    
+    def al_liberarse(self, cancha, franja):
+        if franja not in self.esperando:
+            return
+
+        if not self.esperando[franja]:
+            return
+        
+        primero = self.esperando[franja].pop(0)
+        notificacion = f"Se libero {cancha} el {franja.fecha} de {franja.inicio} a {franja.fin}"
+
+        self.notificador.enviar(primero, notificacion)
+        
 
 
 if __name__ == "__main__":
