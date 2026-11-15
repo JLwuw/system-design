@@ -53,7 +53,7 @@ class FranjaHoraria:
 
 @dataclass
 class Reserva:
-    id: int
+    id: str
     estudiante: str
     franja: FranjaHoraria
 
@@ -61,6 +61,8 @@ class Reserva:
     # metodo __hash__(self) que devuelva hash(self.id).
 
     def __eq__(self, otra):
+        if not isinstance(otra, Reserva):
+            return NotImplemented
         return self.id == otra.id
 
     def __hash__(self):

@@ -84,19 +84,16 @@ class CalendarioDeCancha:
         franja = reserva.franja
         nueva_franja = FranjaHoraria(self.fecha, nuevo_inicio, nuevo_fin)
 
+        for otra_id, otra in self._reservas.items():
+            if otra_id != id_reserva and otra.franja.se_solapa_con(nueva_franja):
+                raise ValueError("franja ocupada")
+
         horas_actuales = self.horas_de(reserva.estudiante) - franja.duracion()
 
         if horas_actuales + nueva_franja.duracion() > MAXIMO_HORAS_POR_ESTUDIANTE:
             raise ValueError("limite de horas alcanzado")
 
-        self._reservas.pop(id_reserva)
-        if self.choca_con_otra(nueva_franja):
-            self._reservas[id_reserva] = reserva
-            raise ValueError("franja ocupada")
-
-        estudiante = reserva.estudiante
-        nueva_reserva = Reserva(id_reserva, estudiante, nueva_franja)
-        self._reservas[id_reserva] = nueva_reserva
+        reserva.franja = nueva_franja
         
 
 
