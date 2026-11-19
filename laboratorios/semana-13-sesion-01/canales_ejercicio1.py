@@ -36,7 +36,21 @@ class Canales:
         # existe). Si ya estaba suscrita a ese tema, no la agregues otra
         # vez. Escribe tambien desuscribir(tema, conexion), que la quita
         # si esta.
-        raise NotImplementedError
+
+        if tema not in self.suscritos:
+            self.suscritos[tema] = []
+
+        if conexion not in self.suscritos[tema]:
+            self.suscritos[tema].append(conexion)
+
+
+    def desuscribir(self, tema, conexion):
+        if tema not in self.suscritos:
+            return
+
+        if conexion in self.suscritos[tema]:
+            self.suscritos[tema].remove(conexion)
+
 
     def suscriptores(self, tema):
         return len(self.suscritos.get(tema, []))
@@ -45,7 +59,16 @@ class Canales:
         # TODO 2: envia el mensaje a cada conexion suscrita al tema y devuelve
         # cuantas lo recibieron (enviar devuelve True o False). Un tema
         # sin suscriptores devuelve 0.
-        raise NotImplementedError
+        if tema not in self.suscritos:
+            return 0
+
+        entregado = 0
+        for conexion in self.suscritos[tema]:
+            if conexion.enviar(mensaje):
+                entregado += 1
+
+        return entregado
+
 
 
 class PublicadorDeDisponibilidad(ObservadorDeReservas):
@@ -58,6 +81,19 @@ class PublicadorDeDisponibilidad(ObservadorDeReservas):
     # fecha (tema_de), y al_liberarse publica "libre 18-19", con las horas
     # de la franja. Guarda en self.ultimos_entregados lo que devolvio
     # publicar.
+
+    def al_ocuparse(self, cancha, franja):
+        mensaje = f"ocupada {str(franja.inicio)}-{str(franja.fin)}"
+        tema = tema_de(cancha, franja.fecha)
+        entregados = self.canales.publicar(tema, mensaje) 
+        self.ultimos_entregados = entregados
+
+
+    def  al_liberarse(self, cancha, franja):
+        mensaje = f"libre {str(franja.inicio)}-{str(franja.fin)}"
+        tema = tema_de(cancha, franja.fecha)
+        entregados = self.canales.publicar(tema, mensaje) 
+        self.ultimos_entregados = entregados        
 
 
 if __name__ == "__main__":
