@@ -16,8 +16,62 @@ que cambiaste para que pase, y que refactorizaste.
 """
 
 from cupos_ejercicio2 import CupoSemanal
+import pytest
 
 
 def test_sin_reservas_puede_reservar():
     cupo = CupoSemanal()
+    assert cupo.puede_reservar("ana", "2026-11-16")
+
+
+def test_con_dos_reservas_todavia_puede():
+    cupo = CupoSemanal()
+    for i in range(2):
+        cupo.registrar(str(i), "ana", "2026-11-16")
+    assert cupo.puede_reservar("ana", "2026-11-22")
+
+
+def test_con_tres_reservas_no_puede():
+    cupo = CupoSemanal()
+    for i in range(3):
+        cupo.registrar(str(i), "ana", "2026-11-16")
+    assert not cupo.puede_reservar("ana", "2026-11-22")
+
+
+def test_las_otras_semanas_no_cuentan():
+    cupo = CupoSemanal()
+    for i in range(3):
+        cupo.registrar(str(i), "ana", "2026-11-16")
+    assert not cupo.puede_reservar("ana", "2026-11-22")
+    assert cupo.puede_reservar("ana", "2026-11-23")
+
+
+def test_cancelar_libera_un_lugar():
+    cupo = CupoSemanal()
+    for i in range(3):
+        cupo.registrar(str(i), "ana", "2026-11-16")
+    cupo.cancelar("1")
+    assert cupo.puede_reservar("ana", "2026-11-16")
+
+
+def test_equipo_oficial_puede_registrar_seis():
+    cupo = CupoSemanal()
+    cupo.registrar_equipo_oficial("equipo")
+    for i in range(6):
+        assert cupo.puede_reservar("equipo", "2026-11-16")
+        cupo.registrar(str(i), "equipo", "2026-11-16")
+    assert not cupo.puede_reservar("equipo", "2026-11-16")
+    with pytest.raises(ValueError, match="cupo semanal agotado"):
+        cupo.registrar("6", "equipo", "2026-11-16")
+
+
+def test_cuarta_reserva_no_se_registra():
+    cupo = CupoSemanal()
+    for i in range(3):
+        cupo.registrar(str(i), "ana", "2026-11-16")
+    with pytest.raises(ValueError, match="cupo semanal agotado"):
+        cupo.registrar("3", "ana", "2026-11-16")
+    with pytest.raises(ValueError):
+        cupo.cancelar("3")
+    cupo.cancelar("0")
     assert cupo.puede_reservar("ana", "2026-11-16")
